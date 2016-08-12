@@ -1,4 +1,4 @@
-//Version 0.1
+//Version 0.3
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -9,7 +9,7 @@ using GTA;
 using GTA.Native;
 using NativeUI;
 
-public class MenuExample : Script
+public class CoastGuardMod : Script
 {
     ScriptSettings config;
     string text;
@@ -29,17 +29,32 @@ public class MenuExample : Script
         {
             if (item == goonduty)
             {
+                Game.Player.Character.Position = new GTA.Math.Vector3(-752.742f, -1508.286f, 5.008f);
+                Game.Player.CanControlCharacter = false;
+                var station = new GTA.Math.Vector3(-752.742f, -1508.286f, 5.008f);
+                var stationblip = World.CreateBlip(station);
+                var station2 = new GTA.Math.Vector3(2836.699f, -641.453f, 1.633f);
+                var station2blip = World.CreateBlip(station2);
+                stationblip.Sprite = BlipSprite.PoliceStation;
+                station2blip.Sprite = BlipSprite.PoliceStation;
+                Game.FadeScreenOut(5000);
+                Wait(3000);
+                Game.FadeScreenIn(5000);
                 UI.Notify("~b~You are now on duty!");
                 Game.Player.ChangeModel("S_M_Y_USCG_01");
                 Game.Player.Character.AddBlip();
+                Game.Player.Character.CurrentBlip.Sprite = BlipSprite.PoliceArea;
                 Game.Player.Character.Weapons.Give((WeaponHash)Function.Call<int>(Hash.GET_HASH_KEY, "WEAPON_NIGHTSTICK"), 1, false, false);
+                Game.Player.Character.Weapons.Give((WeaponHash)Function.Call<int>(Hash.GET_HASH_KEY, "WEAPON_FLASHLIGHT"), 1, false, false);
+                Game.Player.Character.Weapons.Give((WeaponHash)Function.Call<int>(Hash.GET_HASH_KEY, "WEAPON_STUNGUN"), 9999, false, false);
                 Game.Player.Character.Weapons.Give((WeaponHash)Function.Call<int>(Hash.GET_HASH_KEY, "WEAPON_COMBATPISTOL"), 9999, false, false);
                 Game.Player.Character.Weapons.Give((WeaponHash)Function.Call<int>(Hash.GET_HASH_KEY, "WEAPON_PUMPSHOTGUN"), 9999, false, false);
                 Game.Player.Character.Weapons.Give((WeaponHash)Function.Call<int>(Hash.GET_HASH_KEY, "WEAPON_CARBINERIFLE"), 9999, false, false);
+                Game.Player.CanControlCharacter = true;
             }
         };
 
-        //go on duty
+        //go off duty
         var gooffduty = new UIMenuItem("Go Off Duty", "Click to go off duty");
         dutymenu.AddItem(gooffduty);
         dutymenu.OnItemSelect += (sender, item, index) =>
@@ -50,6 +65,7 @@ public class MenuExample : Script
                 Game.Player.ChangeModel("PLAYER_ZERO");
                 Game.Player.Character.CurrentBlip.Remove();
                 Game.Player.Character.Weapons.RemoveAll();
+                Game.Player.Character.Position = new GTA.Math.Vector3(-136.517f, 870.754f, 232.693f);
             }
         };
     }
@@ -68,7 +84,7 @@ public class MenuExample : Script
         {
             if (item == avaible)
             {
-                UI.Notify(text += ": show me avaible for calls");
+                UI.ShowSubtitle("~r~Sorry, I'm still working on this, ~g~but you can force calls from the call-out menu! :P");
             }
         };
 
@@ -79,7 +95,7 @@ public class MenuExample : Script
         {
             if (item == notavaible)
             {
-                UI.Notify(text += ": show me unavaible for calls");
+                UI.Notify("~g~Control: ~w~10-4 Coast Guard One, showing you 10-7");
             }
         };
     }
@@ -111,8 +127,17 @@ public class MenuExample : Script
             }
         };
 
-        //add nightstick
-        // pedda.Weapons.Give((WeaponHash)Function.Call<int>(Hash.GET_HASH_KEY, "NIGHTSTICK"), 1, false, false);
+        //Medic
+        //S_M_M_PARAMEDIC_01
+        var pmedic = new UIMenuItem("Paramedic Model", "Switch to Coast Guard Paramedic");
+        subplayermenu.AddItem(pmedic);
+        subplayermenu.OnItemSelect += (sender, item, index) =>
+        {
+            if (item == pmedic)
+            {
+                Game.Player.ChangeModel("S_M_M_PARAMEDIC_01");
+            }
+        };
     }
 
     public void VehicleMenu(UIMenu menu)
@@ -121,62 +146,70 @@ public class MenuExample : Script
         for (int i = 0; i < 1; i++) ;
 
         //Spawn Car
-        //Vehicle car = World.CreateVehicle("LGUARD", Player.Character.Position, 30);
         var coastguardcar = new UIMenuItem("Coast Guard Car", "");
         subvehiclemenu.AddItem(coastguardcar);
         subvehiclemenu.OnItemSelect += (sender, item, index) =>
         {
             if (item == coastguardcar)
             {
-                Vehicle car = World.CreateVehicle("LGUARD", Game.Player.Character.Position, 500);
+                Vehicle car = World.CreateVehicle("SHERIFF2", World.GetNextPositionOnStreet(Game.Player.Character.Position.Around(10f)));
+                car.AddBlip();
+                car.CurrentBlip.Color = BlipColor.Blue;
             }
         };
 
-        //Spawn beachvehicle
-        //Vehicle car = World.CreateVehicle("LGUARD", Player.Character.Position, 30);
+        //Spawn contender
         var beachvehicle = new UIMenuItem("Utility Response Vehicle", "");
         subvehiclemenu.AddItem(beachvehicle);
         subvehiclemenu.OnItemSelect += (sender, item, index) =>
         {
             if (item == beachvehicle)
             {
-                Vehicle car = World.CreateVehicle("CONTENDER", Game.Player.Character.Position, 500);
-            }
-        };
-
-        //Spawn Modded SUV
-        //SHERIFF
-        var coastguardSUV = new UIMenuItem("Coast Guard SUV", "");
-        subvehiclemenu.AddItem(coastguardSUV);
-        subvehiclemenu.OnItemSelect += (sender, item, index) =>
-        {
-            if (item == coastguardSUV)
-            {
-                Vehicle car = World.CreateVehicle("SHERIFF2", Game.Player.Character.Position, 500);
+                Vehicle car2 = World.CreateVehicle("CONTENDER", World.GetNextPositionOnStreet(Game.Player.Character.Position.Around(10f)));
+                car2.AddBlip();
+                car2.CurrentBlip.Color = BlipColor.Blue;
+                car2.NumberPlate = "GUARD";
+                car2.CustomPrimaryColor = Color.OrangeRed;
+                car2.CustomSecondaryColor = Color.Gray;
             }
         };
 
         //Spawn ATV
-        //Vehicle car = World.CreateVehicle("ADDER", Player.Character.Position, 30);
         var coastguardatv = new UIMenuItem("Coast Guard ATV", "");
         subvehiclemenu.AddItem(coastguardatv);
         subvehiclemenu.OnItemSelect += (sender, item, index) =>
         {
             if (item == coastguardatv)
             {
-                Vehicle car = World.CreateVehicle("BLAZER2", Game.Player.Character.Position, 500);
+                Vehicle car3 = World.CreateVehicle("BLAZER2", World.GetNextPositionOnStreet(Game.Player.Character.Position.Around(10f)));
+                car3.AddBlip();
+                car3.CurrentBlip.Color = BlipColor.Blue;
             }
         };
 
         //Spawn boat2
-        //Vehicle car = World.CreateVehicle("ADDER", Player.Character.Position, 30);
         var coastguardboat2 = new UIMenuItem("Coast Guard Boat", "");
         subvehiclemenu.AddItem(coastguardboat2);
         subvehiclemenu.OnItemSelect += (sender, item, index) =>
         {
             if (item == coastguardboat2)
             {
-                Vehicle car = World.CreateVehicle("DINGHY2", Game.Player.Character.Position, 500);
+                Vehicle car4 = World.CreateVehicle("DINGHY2", Game.Player.Character.Position, 500);
+                car4.AddBlip();
+                car4.CurrentBlip.Sprite = BlipSprite.Boat;
+            }
+        };
+
+        //Jet Ski
+        var coastguardboat = new UIMenuItem("Coast Guard Jet Ski", "");
+        subvehiclemenu.AddItem(coastguardboat);
+        subvehiclemenu.OnItemSelect += (sender, item, index) =>
+        {
+            if (item == coastguardboat)
+            {
+                Vehicle car5 = World.CreateVehicle("SEASHARK2", Game.Player.Character.Position, 500);
+                car5.AddBlip();
+                car5.CurrentBlip.Sprite = BlipSprite.Boat;
             }
         };
 
@@ -188,7 +221,20 @@ public class MenuExample : Script
         {
             if (item == helicopter)
             {
-                Vehicle car = World.CreateVehicle("MAVERICK", Game.Player.Character.Position, 500);
+                Vehicle car6 = World.CreateVehicle("MAVERICK", Game.Player.Character.Position, 500);
+                car6.AddBlip();
+                car6.CurrentBlip.Sprite = BlipSprite.Helicopter;
+            }
+        };
+
+        //DELETE BLIPS
+        var deletecarblips = new UIMenuItem("Delete Car Blips", "");
+        subvehiclemenu.AddItem(deletecarblips);
+        subvehiclemenu.OnItemSelect += (sender, item, index) =>
+        {
+            if (item == deletecarblips)
+            {
+                UI.ShowSubtitle("Sorry, I'm still working on this :P");
             }
         };
     }
@@ -208,21 +254,122 @@ public class MenuExample : Script
                 Game.Player.Character.CurrentVehicle.Repair();
             }
         };
+
+        //Open Trunk
+        var opentrunk = new UIMenuItem("Open Trunk", "");
+        subvehicleoptions.AddItem(opentrunk);
+        subvehicleoptions.OnItemSelect += (sender, item, index) =>
+        {
+            if (item == opentrunk)
+            {
+                Game.Player.Character.CurrentVehicle.OpenDoor(VehicleDoor.Trunk, false, true);
+            }
+        };
+
+        //Close Trunk
+        var closetrunk = new UIMenuItem("Close Trunk", "~r~Warning: This will repair your vehicle. Code is bugged!");
+        subvehicleoptions.AddItem(closetrunk);
+        subvehicleoptions.OnItemSelect += (sender, item, index) =>
+        {
+            if (item == closetrunk)
+            {
+                Game.Player.Character.CurrentVehicle.Repair();
+            }
+        };
     }
 
-    public MenuExample()
+    public void TeleportMenu(UIMenu menu)
+    {
+        var teleportoptions = _menuPool.AddSubMenu(menu, "Teleport Menu");
+        for (int i = 0; i < 1; i++) ;
+
+        //
+        var stationbase = new UIMenuItem("Main Station", "Southern Los Santos");
+        teleportoptions.AddItem(stationbase);
+        teleportoptions.OnItemSelect += (sender, item, index) =>
+        {
+            if (item == stationbase)
+            {
+                Game.Player.Character.Position = new GTA.Math.Vector3(-752.742f, -1508.286f, 5.008f);
+            }
+        };
+
+        //
+        var secondarybase = new UIMenuItem("Secondary Station", "Palomino Highlands");
+        teleportoptions.AddItem(secondarybase);
+        teleportoptions.OnItemSelect += (sender, item, index) =>
+        {
+            if (item == secondarybase)
+            {
+                Game.Player.Character.Position = new GTA.Math.Vector3(2836.699f, -641.453f, 1.633f);
+            }
+        };
+
+        //
+        var headquarters = new UIMenuItem("Headquarters", "");
+        teleportoptions.AddItem(headquarters);
+        teleportoptions.OnItemSelect += (sender, item, index) =>
+        {
+            if (item == headquarters)
+            {
+                Game.Player.Character.Position = new GTA.Math.Vector3(-892.503f, -444.700f, 125.132f);
+            }
+        };
+
+        //
+        var fzancudoact = new UIMenuItem("Fort Zancudo Air Control Tower", "");
+        teleportoptions.AddItem(fzancudoact);
+        teleportoptions.OnItemSelect += (sender, item, index) =>
+        {
+            if (item == fzancudoact)
+            {
+                Game.Player.Character.Position = new GTA.Math.Vector3(-2360.731f, 3244.930f, 92.904f);
+            }
+        };
+
+        //
+        var sshoresact = new UIMenuItem("Sandy Shores Air Control Tower", "");
+        teleportoptions.AddItem(sshoresact);
+        teleportoptions.OnItemSelect += (sender, item, index) =>
+        {
+            if (item == sshoresact)
+            {
+                Game.Player.Character.Position = new GTA.Math.Vector3(1700.370f, 3292.059f, 48.922f);
+            }
+        };
+
+        //
+        var dcr = new UIMenuItem("Fort Zancudo Air Control Tower", "");
+        teleportoptions.AddItem(dcr);
+        teleportoptions.OnItemSelect += (sender, item, index) =>
+        {
+            if (item == dcr)
+            {
+                Game.Player.Character.Position = new GTA.Math.Vector3(568.861f, -3123.702f, 18.769f);
+            }
+        };
+    }
+
+    public void CallOutMenu(UIMenu menu)
+    {
+        //REMOVED THIS CODE FROM PUBLIC
+    }
+
+    public CoastGuardMod()
     {
         _menuPool = new MenuPool();
         var mainMenu = new UIMenu("Coast Guard", "~b~Mod by Abel Gaming");
         _menuPool.Add(mainMenu);
         DutyMenu(mainMenu);
         DispatchMenu(mainMenu);
+        CallOutMenu(mainMenu);
         PlayerMenu(mainMenu);
         VehicleMenu(mainMenu);
         VehicleOptions(mainMenu);
+        TeleportMenu(mainMenu);
         _menuPool.RefreshIndex();
 
-        Tick += (o, e) => Game.Player.WantedLevel = 0;
+        //REMOVED THIS CODE
         Tick += (o, e) => _menuPool.ProcessMenus();
         KeyDown += (o, e) =>
         {
